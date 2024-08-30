@@ -23,7 +23,7 @@ s = m:section(TypedSection, "global", translate("系统状态"),
 s.anonymous = true
 s:append(Template("fros"))
 
-
+-- 26行-35行
 s = m:section(TypedSection, "ipk", translate("本地安装"), "")
 
 fu = s:option(FileUpload, "")
