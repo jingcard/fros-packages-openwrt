@@ -1,0 +1,228 @@
+
+<%
+local fros_version = require "luci.controller.fros".get_fros_version()
+
+-%>
+<script type="text/javascript">
+	//<![CDATA[
+
+	window.onload = function() {
+		var vid_elem = document.getElementById('vid');
+		var unins_btn = document.getElementById('unins-check_btn');
+		var version_elem = document.getElementById('version_info');
+		var notice_elem = document.getElementById('notice');
+		var upgrade_elem = document.getElementById('upgrade_btn');
+		var upgrade_free_elem = document.getElementById('upgrade_free_btn');
+		var log_elem = document.getElementById('error_log');
+		if (vid_elem.innerText.length < 4){
+			version_elem.style.display = "none"
+			unins_btn.disabled = true;
+		}
+		else{
+			notice_elem.style.display = "none"
+			upgrade_elem.disabled = true;
+			upgrade_free_elem.disabled = true;
+		}
+		XHR.get('<%=url([[admin]], [[system]], [[fros]], [[check_old_version]])%>', {
+			token: '',
+		}, function(x,json) {
+			if(json.code) {
+				if (json.code == 20000){
+					log_elem.innerText = "检测到应用过滤模块，请先卸载相关插件(luci-app-oaf,appfilter,kmod-oaf),然后再更新。卸载方法：进入系统-->软件包，搜索已安装插件，直接卸载即可，卸载后最好重启下设备。"
+					upgrade_elem.disabled = true;
+					upgrade_free_elem.disabled = true;
+				}
+			} 
+		},300);
+	};
+	
+	function onClick_uninstall(btn) {
+		btn.disabled = true;
+		var log_elem = document.getElementById('error_log');
+		log_elem.innerText = ""
+		btn.value = "正在卸载...";
+		XHR.get('<%=url([[admin]], [[system]], [[fros]], [[uninstall_fros_ipk]])%>', {
+			token: '',
+			arch: ''
+		}, function(x,json) {
+			if(json.code) {
+				if (json.code == 20000){
+					log_elem.innerText = "卸载成功"
+					btn.value = "卸载";
+					location.reload()
+					return
+				}
+				else{
+					log_elem.innerText = "卸载失败"
+				}
+			} else {
+				log_elem.innerText = "未知错误"
+			}
+			btn.value = "卸载";
+			btn.disabled = false
+		},300);
+	
+	}
+	function onClick_get_install_log(btn) {
+		btn.disabled = true;
+		var log_elem = document.getElementById('install_log');
+		log_elem.innerText = ""
+		XHR.get('<%=url([[admin]], [[system]], [[fros]], [[get_install_log]])%>', {
+			token: '',
+			arch: ''
+		}, function(x,json) {
+			log_elem.innerText = json.data
+			btn.disabled = false
+		},300);
+	
+	}
+	function onClick_open_fros_web(btn){
+		location.href=window.location.origin + "/fros.html"
+	}
+
+	
+
+	function onClick_upgrade(btn) {
+		btn.disabled = true;
+		var log_elem = document.getElementById('error_log');
+		log_elem.innerText = ""
+		btn.value = "正在更新...";
+		XHR.get('<%=url([[admin]], [[system]], [[fros]], [[upgrade_fros_ipk]])%>', {
+			token: '',
+			arch: ''
+		},
+		 
+		function(x,json) {
+			if(json.code) {
+				if (json.code == 20000){
+					btn.value = "更新成功"
+					btn.disabled = true;
+					location.reload()
+					return
+				}
+				if (json.code == 40001){
+					log_elem.innerText  = "服务器错误，请稍后再试";
+				}
+				else if (json.code == 40002){
+					log_elem.innerText  = "安装包格式错误，请反馈";
+				}
+				else if (json.code == 40003){
+					log_elem.innerText  = "安装失败,可能因为缺少依赖引起，请先安装依赖或者更新固件版本";
+				}
+				else if (json.code == 40005){ 
+					log_elem.innerText = "版本检查失败，请检查网络，如果网络正常可能系统维护中，请稍后再试"
+				}
+				else if (json.code == 40006){ 
+					log_elem.innerText = "获取固件内核版本或产品架构信息失败，建议更换主流的发行版本"
+				}
+				else if (json.code == 40007){  
+					log_elem.innerText = json.msg
+				}
+				else if (json.code == 40008){ 
+					log_elem.innerText = json.msg
+				}
+				else {
+					log_elem.innerText = "服务器未知错误"
+				}
+			} else {
+				log_elem.innerText = "返回格式错误，请刷新页面重试"
+			}
+			btn.disabled = false;
+			btn.value = "在线更新资源包";
+		},
+		
+		300);
+
+		
+	}
+
+
+	function onClick_upgrade_free(btn) {
+		btn.disabled = true;
+		var log_elem = document.getElementById('error_log');
+		log_elem.innerText = ""
+		btn.value = "正在更新...";
+		XHR.get('<%=url([[admin]], [[system]], [[fros]], [[upgrade_fros_ipk_free]])%>', {
+			token: '',
+			arch: ''
+		},
+		 
+		function(x,json) {
+			if(json.code) {
+				if (json.code == 20000){
+					btn.value = "更新成功"
+					btn.disabled = true;
+					location.reload()
+					return
+				}
+				if (json.code == 40001){
+					log_elem.innerText  = "服务器错误，请稍后再试";
+				}
+				else if (json.code == 40002){
+					log_elem.innerText  = "安装包格式错误，请反馈";
+				}
+				else if (json.code == 40003){
+					log_elem.innerText  = "安装失败,可能因为缺少依赖引起，请先安装依赖或者更新固件版本";
+				}
+				else if (json.code == 40005){ 
+					log_elem.innerText = "版本检查失败，请检查网络，如果网络正常可能系统维护中，请稍后再试"
+				}
+				else if (json.code == 40006){ 
+					log_elem.innerText = "获取固件内核版本或产品架构信息失败，建议更换主流的发行版本"
+				}
+				else if (json.code == 40007){  
+					log_elem.innerText = json.msg
+				}
+				else if (json.code == 40008){ 
+					log_elem.innerText = json.msg
+				}
+				else {
+					log_elem.innerText = "服务器未知错误"
+				}
+			} else {
+				log_elem.innerText = "返回格式错误，请刷新页面重试"
+			}
+			btn.disabled = false;
+			btn.value = "在线更新资源包";
+		},
+		
+		300);
+
+		
+	}
+
+
+	//]]>
+</script>
+
+<div class="cbi-value">
+	<div class="cbi-value-field">
+		<span id = "vid" style="display: none";><%=fros_version%> </span>
+		<div id="version_info">
+			<div style="margin-left: 40px">
+				版本号: <span > v<%=fros_version%> </span> </br>
+				运行状态: <span style="color:green;margin-top:40px;">正在运行</span> </br>
+				系统管理: <input class="cbi-button cbi-input-apply" style="background-color:#6b8623;color:white" type="button"  id="manage_web" onclick="onClick_open_fros_web(this);" value="<%:打开管理界面%>" />
+			</div>
+		</div>
+		<div id="notice">
+			<div style="margin-left: 30px">
+				运行状态: <span style="color:red">未运行, 请先更新FROS核心插件</span> 
+			</div>
+		</div>
+
+		<div style="margin-left:30px;margin-top:60px">
+			<input class="cbi-button cbi-input-apply" type="button" style="background-color: #c9443d;" id="unins-check_btn" onclick="onClick_uninstall(this);" value="<%:卸载核心插件%>" />
+			<input class="cbi-button cbi-input-apply" type="button"  id="upgrade_btn" onclick="onClick_upgrade(this);" value="<%:在线更新核心插件(专业版)%>" />
+			<input class="cbi-button cbi-input-apply" type="button"  id="upgrade_free_btn" onclick="onClick_upgrade_free(this);" value="<%:在线更新核心插件(普通版)%>" />
+
+			<input class="cbi-button cbi-input-apply"  type="button"  id="log_btn" onclick="onClick_get_install_log(this);" value="<%:查看安装日志%>" />
+
+		</div>
+		<span id = "error_log" style="color:red;margin-left: 40px;"></span>
+		<span id = "error_log2" style="color:red;margin-left: 40px;"></span>
+
+		<span id = "install_log" style="color:gray;margin-left: 40px;"></span>
+
+	</div>
+</div>
