@@ -4,6 +4,6 @@ LUCI_PKGARCH:=all
 LUCI_DEPENDS:=
 PKG_NAME:=luci-app-fros
 PKG_VERSION:=1.0
-PKG_RELEASE:=1
+PKG_RELEASE:=8
 include $(TOPDIR)/feeds/luci/luci.mk
 # call BuildPackage - OpenWrt buildroot signature
